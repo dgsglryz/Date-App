@@ -11,8 +11,9 @@ enum DateFormat {
   case standard, two, long
 }
 
-struct Date: Comparable {
+struct Date: CustomStringConvertible {
   
+  private static let monthDays: [(abbrev: String, numDays: Int)] = [("", 0), ("Jan", 31), ("Feb", 28), ("Mar", 31), ("Apr", 30), ("May", 31), ("June", 30), ("July", 31), ("Aug", 31), ("Sept", 30), ("Oct", 31), ("Nov", 30), ("Dec", 31)]
   private(set) var month: Int
   private(set) var day: Int
   private(set) var year: Int
@@ -79,8 +80,12 @@ struct Date: Comparable {
   }
   
   mutating func setFormat(_ newFormat: DateFormat) {
-      self.dateFormat = newFormat
-    }
+    self.dateFormat = newFormat
+  }
+  
+  var description: String {
+    return "\(month)/\(day)/\(year)"
+  }
   
   private func isValidDate(month: Int, day: Int, year: Int) -> Bool {
     if year < 0 {
@@ -158,18 +163,25 @@ struct Date: Comparable {
     }
   }
   
-  static func <(lhs: Date, rhs: Date) -> Bool {
-    if lhs.year != rhs.year {
-      return lhs.year < rhs.year
-    } else if lhs.month != rhs.month {
-      return lhs.month < rhs.month
-    } else {
-      return lhs.day < rhs.day
-    }
-  }
-  
+}
+
+extension Date: Equatable {
   static func ==(lhs: Date, rhs: Date) -> Bool {
     return lhs.year == rhs.year && lhs.month == rhs.month && lhs.day == rhs.day
   }
 }
 
+extension Date: Comparable {
+  static func <(lhs: Date, rhs: Date) -> Bool {
+    var lhsDays = lhs.year * 365 + lhs.day
+    for m in 1..<lhs.month {
+      lhsDays += monthDays[m].numDays
+    }
+    
+    var rhsDays = rhs.year * 365 + rhs.day
+    for m in 1..<rhs.month {
+      rhsDays += monthDays[m].numDays
+    }
+    return lhsDays < rhsDays
+  }
+}
